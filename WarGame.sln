@@ -5,6 +5,8 @@ VisualStudioVersion = 15.0.26730.12
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WarGame", "WarGame\WarGame.csproj", "{8917FE80-FF00-49EA-AE0C-FFCDB1F92072}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WarGameTests", "WarGameTests\WarGameTests.csproj", "{CCFBB6D4-9557-4B81-83B4-DED61AD55C1C}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -15,6 +17,10 @@ Global
 		{8917FE80-FF00-49EA-AE0C-FFCDB1F92072}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{8917FE80-FF00-49EA-AE0C-FFCDB1F92072}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{8917FE80-FF00-49EA-AE0C-FFCDB1F92072}.Release|Any CPU.Build.0 = Release|Any CPU
+		{CCFBB6D4-9557-4B81-83B4-DED61AD55C1C}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{CCFBB6D4-9557-4B81-83B4-DED61AD55C1C}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{CCFBB6D4-9557-4B81-83B4-DED61AD55C1C}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{CCFBB6D4-9557-4B81-83B4-DED61AD55C1C}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
