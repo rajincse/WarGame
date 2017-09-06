@@ -7,7 +7,10 @@ using WarGame.GameLogic;
 
 namespace WarGame
 {
-    
+    /// <summary>
+    /// Author: Sayeed S. Alam, Ph.D.
+    /// Email: salam011@cis.fiu.edu
+    /// </summary>
     class Program
     {
         static void Main(string[] args)
