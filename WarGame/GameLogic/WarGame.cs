@@ -62,27 +62,28 @@ namespace WarGame.GameLogic
             player2Cards = new Queue<Card>(deck.GetRange(halfSize, halfSize));
         }
         /// <summary>
-        /// Plays one step of play. E.g. dealing one card or handling war        /// 
+        /// Plays one step of play. E.g. dealing one card or handling war
         /// </summary>
         /// <returns>Returns the game status ( E.g. isOver, Who won recently or War)</returns>
         public GameStatus Play()
         {
             GameStatus status = GameStatus.Default;
-            if (IsPlayable())
+            if (IsPlayable()) // Checks wheather both players have atleast one card
             {
-                status = CheckCard();
-                // Print Reports based on the tests
-                ReportCardStatus();
-                ReportProgress(status);
+                status = CheckCard(); //Check status of the next cards 
+                ReportCardStatus(); //Print card status
 
-                PutCardsOnTheTable();
+                PutCardsOnTheTable(); // Put a single card to the table
+                ReportProgress(status);//Print result in the current step
+
+                
                 switch (status)
                 {
                     case GameStatus.Player1Win:
-                        Reward(player1Cards);
+                        Reward(player1Cards); // Put all cards on the table to Player1
                         break;
                     case GameStatus.Player2Win:
-                        Reward(player2Cards);
+                        Reward(player2Cards);// Put all cards on the table to Player2
                         break;
                     case GameStatus.War:
                         HandleWar();
@@ -93,30 +94,41 @@ namespace WarGame.GameLogic
             {
                 status = GameStatus.IsOver;
             }
-            if(status != GameStatus.War)
+            if(status != GameStatus.War) // For war the Play method is already called recursively
             {
                 ReportProgress();
             }
             
             return status;
         }
+        /// <summary>
+        /// Handle war by putting a card facedown and play again
+        /// </summary>
         private void HandleWar()
         {
             //faceup cards
-            if(IsPlayable())
+            if(IsPlayable()) //check wheather putting facedown is possible
             {  
                 PutCardsOnTheTable();
-                ReportProgress(GameStatus.FaceDownCards);
+                ReportProgress(GameStatus.FaceDownCards); // Special print for facedown cards
             }
             //Play Again!
             Play();
             
         }
+        /// <summary>
+        /// Put a single card from each player on the table
+        /// </summary>
         private void PutCardsOnTheTable()
         {
             this.onTheTableCards.Enqueue(Player1Cards.Dequeue());
             this.onTheTableCards.Enqueue(Player2Cards.Dequeue());
         }
+
+        /// <summary>
+        /// Give all the cards to the winner 
+        /// </summary>
+        /// <param name="winner">The winner Card queue</param>
         private void Reward(Queue<Card> winner)
         {
             while(this.onTheTableCards.Count !=0)
@@ -125,22 +137,25 @@ namespace WarGame.GameLogic
                 winner.Enqueue(card);
             }
         }
-        
+        /// <summary>
+        /// Checks the next card from each player and determines the result in the current step
+        /// </summary>
+        /// <returns>Game status (e.g. War or any player win)</returns>
         public GameStatus CheckCard()
         {
             //Play a single card
             Card player1Card = player1Cards.Peek();
             Card player2Card = player2Cards.Peek();
             GameStatus status = GameStatus.Default;
-            if(player1Card.CompareTo(player2Card)> 0)
+            if(player1Card.CompareTo(player2Card)> 0) // Player1 card is bigger
             {
                 status = GameStatus.Player1Win;
             }
-            else if (player1Card.CompareTo(player2Card) < 0)
+            else if (player1Card.CompareTo(player2Card) < 0)// Player2 card is bigger
             {
                 status = GameStatus.Player2Win;
             }
-            else
+            else // War. Both cards have same value. 
             {
                 status = GameStatus.War;
             }
