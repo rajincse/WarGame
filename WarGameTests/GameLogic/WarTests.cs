@@ -33,18 +33,6 @@ namespace WarGame.GameLogic.Tests
             CollectionAssert.AreNotEqual(q2, game.Player2Cards, "Player2 Cards should be randomized");
         }
 
-        [TestMethod(), Timeout(2000)]
-        public void PlayTest()
-        {
-            War game = new War("Player1", "Player2");
-            game.DealCards();
-            bool gameEnded = game.Play();
-            while(!gameEnded)
-            {
-                gameEnded = game.Play();
-            }
-            int minSize = Math.Min(game.Player1Cards.Count, game.Player2Cards.Count);
-            Assert.IsTrue(minSize==0, "One must have all cards");
-        }
+        
     }
 }

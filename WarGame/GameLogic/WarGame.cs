@@ -10,6 +10,13 @@ using WarGame.Entity;
 namespace WarGame.GameLogic
 {
     /// <summary>
+    /// Enum for Game Statuses
+    /// </summary>
+    public enum GameStatus
+    {
+        Default, IsOver,Player1Win, Player2Win,FaceDownCards, War
+    }
+    /// <summary>
     /// The main class for conducting the game
     /// </summary>
     public class War
@@ -18,6 +25,7 @@ namespace WarGame.GameLogic
         private string player2Name;
         private Queue<Card> player1Cards;
         private Queue<Card> player2Cards;
+        private Queue<Card> onTheTableCards;// container for cards on the table
 
         public Queue<Card> Player1Cards { get => player1Cards; }
         public Queue<Card> Player2Cards { get => player2Cards ; }
@@ -27,6 +35,7 @@ namespace WarGame.GameLogic
         {
             this.player1Name = player1Name;
             this.player2Name = player2Name;
+            this.onTheTableCards = new Queue<Card>();
         }
 
         /// <summary>
@@ -53,93 +62,151 @@ namespace WarGame.GameLogic
             player2Cards = new Queue<Card>(deck.GetRange(halfSize, halfSize));
         }
         /// <summary>
-        /// Plays one step of play. E.g. dealing one card or handling war
+        /// Plays one step of play. E.g. dealing one card or handling war        /// 
         /// </summary>
-        /// <returns>True if the game is ended else false</returns>
-        public bool Play()
+        /// <returns>Returns the game status ( E.g. isOver, Who won recently or War)</returns>
+        public GameStatus Play()
         {
-            StringBuilder progress = new StringBuilder(); // string container for progress message
-            if (player1Cards.Count==0 || player2Cards.Count==0) // check whether the game has ended
+            GameStatus status = GameStatus.Default;
+            if (IsPlayable())
             {
-                progress.Append(CurrentReport());
-                GameReport(progress.ToString());
-                return true;
-            }
-            
-            Queue<Card> onTheTable = new Queue<Card>();// container for cards on the table
-            //Deal one card from each player
-            Card player1Card = player1Cards.Dequeue();
-            Card player2Card = player2Cards.Dequeue();
-            onTheTable.Enqueue(player1Card);
-            onTheTable.Enqueue(player2Card);
-            //progress
-            progress.Append(player1Card.ToString()+"("+this.player1Name+")");
-            progress.Append(" ");
-            progress.Append(player2Card.ToString() + "(" + this.player2Name + ")");
-            progress.Append("\r\n");
-            //Handle war
-            while (player1Card.CompareTo(player2Card) ==0)
-            {
-                //War!                
-                progress.Append("WAR!!!\r\n");
-                if (player1Cards.Count == 0 || player2Cards.Count == 0) // Check whether any player ran out of cards
+                status = CheckCard();
+                // Print Reports based on the tests
+                ReportCardStatus();
+                ReportProgress(status);
+
+                PutCardsOnTheTable();
+                switch (status)
                 {
-                    progress.Append(CurrentReport());
-                    GameReport(progress.ToString());
-                    return true;
-                }
-                //facedown put single card face down
-                progress.Append("Facedown");
-                progress.Append("\r\n");
-                progress.Append("_ _");
-                progress.Append("\r\n");
-                onTheTable.Enqueue(player1Cards.Dequeue());
-                onTheTable.Enqueue(player2Cards.Dequeue());
-                //faceup
-                if (player1Cards.Count == 0 || player2Cards.Count == 0) // check again
-                {
-                    progress.Append(CurrentReport());
-                    GameReport(progress.ToString());
-                    return true;
-                }
-                player1Card = player1Cards.Dequeue();
-                player2Card = player2Cards.Dequeue();
-                onTheTable.Enqueue(player1Card);
-                onTheTable.Enqueue(player2Card);
-                progress.Append("FaceUp");
-                progress.Append("\r\n");
-                progress.Append(player1Card.ToString() + "(" + this.player1Name + ")");
-                progress.Append(" ");
-                progress.Append(player2Card.ToString() + "(" + this.player2Name + ")");
-                progress.Append("\r\n");
-            }
-            //Actions for any player wins
-            if (player1Card.CompareTo(player2Card)>0)
-            {
-                // player1 wins, put all cards on the table to player1
-                progress.Append(this.player1Name+" Wins");
-                progress.Append("\r\n");
-                
-                foreach (Card card in onTheTable)
-                {
-                    player1Cards.Enqueue(card);
+                    case GameStatus.Player1Win:
+                        Reward(player1Cards);
+                        break;
+                    case GameStatus.Player2Win:
+                        Reward(player2Cards);
+                        break;
+                    case GameStatus.War:
+                        HandleWar();
+                        break;
                 }
             }
             else
             {
-                // player2 wins, put all cards on the table to player2
-                progress.Append(this.player2Name + " Wins");
-                progress.Append("\r\n");
-                foreach (Card card in onTheTable)
-                {
-                    player2Cards.Enqueue(card);
-                }
+                status = GameStatus.IsOver;
             }
-            //Report to handler
-            progress.Append(CurrentReport());
-            GameReport(progress.ToString());
-            return false;
+            if(status != GameStatus.War)
+            {
+                ReportProgress();
+            }
+            
+            return status;
         }
+        private void HandleWar()
+        {
+            //faceup cards
+            if(IsPlayable())
+            {  
+                PutCardsOnTheTable();
+                ReportProgress(GameStatus.FaceDownCards);
+            }
+            //Play Again!
+            Play();
+            
+        }
+        private void PutCardsOnTheTable()
+        {
+            this.onTheTableCards.Enqueue(Player1Cards.Dequeue());
+            this.onTheTableCards.Enqueue(Player2Cards.Dequeue());
+        }
+        private void Reward(Queue<Card> winner)
+        {
+            while(this.onTheTableCards.Count !=0)
+            {
+                Card card = onTheTableCards.Dequeue();
+                winner.Enqueue(card);
+            }
+        }
+        
+        public GameStatus CheckCard()
+        {
+            //Play a single card
+            Card player1Card = player1Cards.Peek();
+            Card player2Card = player2Cards.Peek();
+            GameStatus status = GameStatus.Default;
+            if(player1Card.CompareTo(player2Card)> 0)
+            {
+                status = GameStatus.Player1Win;
+            }
+            else if (player1Card.CompareTo(player2Card) < 0)
+            {
+                status = GameStatus.Player2Win;
+            }
+            else
+            {
+                status = GameStatus.War;
+            }
+
+            return status;
+        }
+        /// <summary>
+        /// Checks whether one of the player is out of cards
+        /// </summary>
+        /// <returns> True if both of the players have atleast one card, otherwise False</returns>
+        public bool IsPlayable()
+        {
+            return player1Cards.Count != 0 && player2Cards.Count != 0;
+        }
+        /// <summary>
+        /// Invokes print to the handler based on the current card situation (e.g. Either any player win or War)
+        /// </summary>
+        private void ReportCardStatus()
+        {
+            StringBuilder progress = new StringBuilder(); // string container for progress message
+            Card player1Card = player1Cards.Peek();
+            Card player2Card = player2Cards.Peek();
+            progress.Append(player1Card.ToString() + "(" + this.player1Name + ")");
+            progress.Append(" ");
+            progress.Append(player2Card.ToString() + "(" + this.player2Name + ")");
+            progress.Append("\r\n");
+            GameReport(progress.ToString());
+        }
+        /// <summary>
+        /// Invokes print the current report to the handler
+        /// </summary>
+        private void ReportProgress()
+        {
+            GameReport(CurrentReport());
+        }
+        /// <summary>
+        /// Invokes print based on the current game situation 
+        /// </summary>
+        /// <param name="status"></param>
+        private void ReportProgress(GameStatus status)
+        {
+            StringBuilder progress = new StringBuilder(); // string container for progress message
+            switch (status)
+            {
+                case GameStatus.Player1Win:
+                    progress.Append(this.player1Name + " Wins");
+                    progress.Append("\r\n");
+                    break;
+                case GameStatus.Player2Win:
+                    progress.Append(this.player2Name + " Wins");
+                    progress.Append("\r\n");
+                    break;
+                case GameStatus.War:
+                    progress.Append("WAR!!!\r\n");
+                    break;
+                case GameStatus.FaceDownCards:
+                    progress.Append("Facedown");
+                    progress.Append("\r\n");
+                    progress.Append("_ _");
+                    progress.Append("\r\n");
+                    break;
+            }
+            GameReport(progress.ToString());
+
+        }
+        
         /// <summary>
         /// Delegate to print progress report
         /// </summary>

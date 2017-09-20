@@ -25,12 +25,11 @@ namespace WarGame
             game.DealCards();
             Console.WriteLine("Hello {0}, Press Enter to progress. Press 'q' to quit any time", player1);
             string input = Console.ReadLine();
-            bool gameEnded = false;
-            while (input.ToLower() != "q" && !gameEnded) //The game will end when pressing q or automatically
+            GameStatus gameStatus = GameStatus.Default;
+            while (input.ToLower() != "q" && gameStatus != GameStatus.IsOver) //The game will end when pressing q or automatically
             {
-                
-                gameEnded = game.Play();
-                if(!gameEnded)
+                gameStatus = game.Play();
+                if(gameStatus != GameStatus.IsOver)
                 {
                     input = Console.ReadLine();
                 }
